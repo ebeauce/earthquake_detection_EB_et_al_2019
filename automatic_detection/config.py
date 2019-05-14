@@ -8,9 +8,11 @@ class Config():
     def __init__(self, parameters):
         self.__dict__ = parameters
         self.base = self.chk_trailing(os.getcwd())
-        self.data   = self.chk_trailing(self.__dict__['input_path'])
-        self.dbpath = self.chk_trailing(self.__dict__['output_path'])
-        self.template_db_path = self.chk_trailing(self.__dict__['template_db_path'])
+        self.data             = self.base + self.chk_trailing(self.__dict__['input_path'])
+        self.network_path     = self.base + self.chk_trailing(self.__dict__['network_path'])
+        self.moveouts_path    = self.base + self.chk_trailing(self.__dict__['moveouts_path'])
+        self.dbpath           = self.base + self.chk_trailing(self.__dict__['output_path'])
+        self.template_db_path = self.base + self.chk_trailing(self.__dict__['template_db_path'])
         self.package = os.path.dirname(inspect.getfile(inspect.currentframe()))
         self.package = self.chk_trailing(self.package)
 
