@@ -13,7 +13,10 @@ filename = link[link.rfind('/')+1:]
 
 zip_ = zipfile.ZipFile('./{}'.format(filename), mode='r')
 
-print('Extract the data in the current working direcotry: {}'.format(os.getcwd()))
+print('Extract the data in the current working directory: {}'.format(os.getcwd()))
 
 zip_.extractall('.')
 zip_.close()
+
+print('Remove the zip archive to free some space.')
+os.system('rm {}'.format(filename))
