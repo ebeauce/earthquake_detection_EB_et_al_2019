@@ -14,12 +14,6 @@ db_path_T_2 = 'template_db_2/'
 with h5.File(autodet.cfg.dbpath + db_path_T_1 + 'database_index.h5', mode='r') as f:
     template_indexes = f['template_indexes'][()]
 
-
-# from the previous relocalization process, you should have a bunch of files called
-# problem_relocalization_part??.txt
-# you can concatenate them using something like:
-# cat problem_relocalization_part* > problem_relocalization.txt
-
 templates_to_remove = []
 with open(autodet.cfg.dbpath + db_path_T_2 + 'problem_relocalization.txt', 'r') as f:
     line = f.readline()[:-1]

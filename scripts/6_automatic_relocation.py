@@ -49,21 +49,6 @@ tids = np.int32(tids)
 
 n_templates = tids.size
 
-Nparts = 13 # to run the code on Nparts different nodes
-L_1part = n_templates // Nparts + 1
-try:
-    idx_part = int(sys.argv[1])
-    id1 = (idx_part-1) * L_1part
-    id2 = idx_part * L_1part
-    if id2 > n_templates:
-        id2 = n_templates
-    tids = tids[id1:id2]
-except:
-    idx_part = -1
-    tids = tids[::-1]
-
-print("Relocation part {:d} / {:d}".format(idx_part, Nparts))
-
 band = [autodet.cfg.min_freq, autodet.cfg.max_freq]
 
 #===================================================================
@@ -522,6 +507,6 @@ for tid in tids:
     #-------------- FREE MEMORY -------------------
     del svd
 
-with open(autodet.cfg.dbpath + db_path_T_to_write + 'problem_relocalization_part{:d}.txt'.format(idx_part), 'w') as f:
+with open(autodet.cfg.dbpath + db_path_T_to_write + 'problem_relocalization.txt'.format(idx_part), 'w') as f:
     for i in range(len(tp_to_check)):
         f.write('template{:d}\n'.format(tp_to_check[i]))
