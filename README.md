@@ -21,7 +21,9 @@ It might require to tune the Makefile with the proper C compiler. CUDA is requir
 You can run scripts 5 and 6 iteratively if you change the paths written at the beginning of each script. template_db_1 and matched_filter_1 are for the first matched-filter search, and you can run a second matched-filter search by modifying those to template_db_2 and matched_filter_2. Between each matched-filter search, do not forget to run the script update_database_index.py.<br/>
 
 Plotting functions are provided in 1_calculate_CNR.py, so that running:
+
 $ ipython -i scripts/1_calculate_CNR.py
+
 will allow you to enter a ipython terminal from where you can run the plotting functions to see what kind of events were detected.<br/>
 
 This Github repository is still work-in-progress, and it should get easier to use in the future. If you have any question, don't hesitate to contact me at: ebeauce@mit.edu<br/>
