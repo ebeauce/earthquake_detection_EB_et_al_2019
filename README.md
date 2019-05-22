@@ -1,6 +1,12 @@
 # earthquake_detection_EB_et_al_2019
 Codes used in the earthquake detection and location method presented in Beauce et al. 2019. A real data example is also provided.<br/>
 
+# Prerequirements:
+
+Template matching is done using the software Fast Matched Filter (FMF, Beaucé et al 2017, doi: [10.1785/0220170181](https://doi.org/10.1785/0220170181)), which is available at [https://github.com/beridel/fast_matched_filter](https://github.com/beridel/fast_matched_filter). cf. the [documentation](https://ebeauce.github.io/FMF_documentation/) to properly install FMF.<br/>
+
+To compile both FMF and the codes provided here, you will need a C compiler and the cuda compiler nvcc if you wish to use the GPU codes. For example, gcc 4.8.5 (C compiler) with the tools from cuda 7.5 are known to work well.
+
 # Procedure to follow:
 
 - Download the repository.<br/>
@@ -8,7 +14,6 @@ Codes used in the earthquake detection and location method presented in Beauce e
 
 $ make
 
-It might require to tune the Makefile with the proper C compiler. CUDA is required to compile the GPU code via nvcc.<br/>
 - Go back to the main folder and start running the scripts from the folder scripts. The first code to run 00_download_data.py, which downloads the data, the moveout grid and the classifier from my dropbox.<br/>
 - Run 0_make_architecture.py, which creates different folders where the intermediate outputs will be stored.<br/>
 - You are now ready to start the detection workflow. Run 1_calculate_CNR.py, which calculates the composite network response and extract a bunch of candidate template events and store them to the output folder.<br/>

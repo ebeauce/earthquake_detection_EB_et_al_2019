@@ -17,6 +17,9 @@ device = 'gpu'
 # else:
 #device ='cpu'
 
+print('The codes will run on {}'.format(device))
+print('If this was not your intention, edit this script and comment the right line for the variable "device".')
+
 # whether you use the P-wave moveouts to align the vertical trace or not
 #method = 'S'
 method = 'SP'
