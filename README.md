@@ -14,7 +14,7 @@ To compile both FMF and the codes provided here, you will need a C compiler and 
 
 $ make
 
-- Go back to the main folder and start running the scripts from the folder scripts. You should either use ipython (which is my personal preference) or add your current working directory to your python path. The first code to run 00_download_data.py (for example with ipython ./scripts/00_download_data.py), which downloads the data, the moveout grid and the classifier from my dropbox.<br/>
+- Go back to the main folder and start running the scripts from the folder scripts. You should either use ipython (which is my personal preference) or add your current working directory to your python path. The first code to run is 00_download_data.py (for example with the command line ipython ./scripts/00_download_data.py), which downloads the data, the moveout grid and the classifier from my dropbox.<br/>
 - Run 0_make_architecture.py, which creates different folders where the intermediate outputs will be stored.<br/>
 - You are now ready to start the detection workflow. Run 1_calculate_CNR.py, which calculates the composite network response and extract a bunch of candidate template events and store them to the output folder.<br/>
 - Run 2_extract_features.py, which calculates the features presented in Beauce et al. 2019 for all the events detected previously.<br/>
