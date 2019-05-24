@@ -1,6 +1,8 @@
 import os
 import automatic_detection as autodet
 
+os.system('mkdir {}'.format(autodet.cfg.dbpath))
+
 n_steps = 3
 for i in range(n_steps):
     os.system('rm -r {}template_db_{:d}/'.format(autodet.cfg.dbpath, i+1))
