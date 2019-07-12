@@ -37,6 +37,8 @@ def calc_network_response(data, moveouts, phase,
     Can run on GPUs if device='gpu'. The argument 'closest' allows to use only the stations closest
     to each grid point in the computation of the network response.
     """
+    ANOMALY_THRESHOLD = 1.e-12 # threshold used to determine if a trace is garbage or not
+    # depends on which unit the trace is
     stations   = data['metadata']['stations']
     components = data['metadata']['components']
     if isinstance(stations, str):
@@ -82,7 +84,7 @@ def calc_network_response(data, moveouts, phase,
                     continue
                 median = np.median(detection_traces[s, c, ~missing_samples])
                 mad = cmn.mad(detection_traces[s, c, ~missing_samples])
-                if mad < 1.:
+                if mad < ANOMALY_THRESHOLD:
                     continue
                 detection_traces[s, c, :] = (detection_traces[s, c, :] - median) / mad
                 detection_traces[s, c, missing_samples] = 0.
@@ -105,6 +107,12 @@ def calc_network_response(data, moveouts, phase,
     data_availability = data_availability > 1
     network_response.data_availability = data_availability
     print('{:d} / {:d} available stations'.format(data_availability.sum(), data_availability.size))
+    if data_availability.sum() < data_availability.size//2:
+        print('Less half the stations are available, pass!')
+        network_response.success = False
+        return network_response
+    else:
+        network_response.success = True
     if n_closest_stations is not None:
         moveouts.get_closest_stations(data_availability, n_closest_stations)
         print('Compute the beamformed network response only with the closest stations to each test seismic source')

@@ -4,15 +4,6 @@ from obspy.geodetics.base import calc_vincenty_inverse
 from os.path import isfile
 import h5py as h5
 
-def coords(filename):
-    """
-    coors(n) \n
-    Returns the geographical coordinates of each grid point
-    in the order : longitudes, latitudes, depths
-    """
-    coords = np.load(cfg.moveouts_path + 'coords_{}.npy'.format(filename))
-    return coords[:,0], coords[:,1], coords[:,2]
-
 def MV_object(filename, net, \
               relative=True, \
               relativeSP=False, \
