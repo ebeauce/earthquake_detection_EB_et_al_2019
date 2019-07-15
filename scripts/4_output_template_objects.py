@@ -36,4 +36,4 @@ for n in range(n_templates):
 with h5.File(autodet.cfg.dbpath + db_path_T + 'database_index.h5', mode='w') as f:
     f.create_dataset('template_indexes', data=np.arange(n_templates), compression='gzip')
 
-print('Added {:d} templates to {}'.format(n_templates, input_database))
+print('Added {:d} templates to {}'.format(n_templates, autodet.cfg.dbpath + db_path_T))
