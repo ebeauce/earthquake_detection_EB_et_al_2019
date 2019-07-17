@@ -10,14 +10,53 @@ from .config import cfg
 from IPython.core.debugger import Tracer
 debug_here = Tracer()
 
-def find_multiplets(templates_mat, moveouts_mat, data, template_IDs, net, \
+def find_multiplets(templates_mat, moveouts_mat, data, template_ids, net, \
                     threshold_type='rms', weights_mat=None,
-                    buf=True, device='gpu'):
+                    buf=True, device='gpu', template_refinement=False):
     """
-    Finds multiplets with different possible modes : if best_St is True, then the coherency coefficient
-    used to trigger detections is calculated with the best stations. If best_Det is True, then the 
-    best multiplets of the day are kept.
+    Find repetitions of the template waveforms, i.e. multiplets
+    
+    Parameters
+    ----------
+    templates_mat : (n_stations, n_components, n_samples_template) array_like 
+        The template waveforms (float 32)
+    moveouts_mat : (n_stations, n_components) array_like
+        The moveouts (int 32)
+    data : (n_stations, n_components, n_samples_continuous_data) array_like
+        The continuous data (float 32)
+    template_ids : (n_templates) array_like
+        The template indexes (int 32)
+    net : Network object from the dataset module
+    threshold_type : string, optional
+        Default is 'rms', the other option is 'mad'. Determines whether the detection
+        threshold uses the rms or the mad of the correlation coefficient time series.
+    weights_mat : (n_stations, n_components) array_like, optional
+        Default is None, which attributes the same weight to all stations / components.  
+        The user can give a float 32 array of weights that will be used to calculate 
+        weighted averaged correlation coefficiemts.
+    buf : bool, optional
+        Default is True, which removes detections occuring in the data buffer.
+    device : string, optional
+    Default is 'gpu'. Determines whether Fast Matched Filter (FMF) runs on GPUs or CPUs (when 'cpu' is given instead).
+    template_refinement : bool, optinal
+        Default is False. If True, limits the number of detections to n_to_keep=50 per template.
+        This choice reduces the time spent writing data and the size of the output. It is meant
+        to be used during intermediate matched filter searches that aim at improving the quality 
+        of the templates by stacking the detections.
+
+    Returns
+    -------
+    list_metadata : (n_templates) list
+        List containing n_templates dictionaries with metadata
+    list_waveforms : (n_templates) list
+        List containing n_templates (n_stations, n_components, n_samples_extracted) arrays 
+        storing the waveforms of the newly detected events.
+    cc_sums : (n_templates, n_correlations) array_like
+        Summed correlation coefficients output by FMF.
     """
+    if template_refinement:
+        n_to_keep = 50
+
     threshold_type = threshold_type.lower()
 
     nt,ns,nc,Nsamp = templates_mat.shape
@@ -137,7 +176,6 @@ def find_multiplets(templates_mat, moveouts_mat, data, template_IDs, net, \
                 dn_b = idx_min - id1
                 id2  = np.int32(id1 + n_samples)
                 id1  = np.int32(idx_min)
-                #print('Have to zero-pad the beginning of the sequence with {:d} samples (id1 = {:d}, id2 = {:d}).'.format(dn_b, id1, id1 + n_samples))
             else:
                 dn_b = 0
                 id2 = id1 + n_samples
@@ -145,20 +183,24 @@ def find_multiplets(templates_mat, moveouts_mat, data, template_IDs, net, \
                 # will have to zero-pad the end of the extracted sequence
                 dn_e = id2 - idx_max
                 id2  = np.int32(idx_max)
-                #print('Have to zero-pad the end of the sequence with {:d} samples (id1 = {:d}, id2 = {:d}).'.format(dn_e, id1, id1 + n_samples))
             else:
                 dn_e = 0
             waveforms[d, :, :, :] = np.concatenate( (np.zeros((n_stations, n_components, dn_b), dtype=np.float32), \
                                                      data['waveforms'][:,:,id1:id2], \
                                                      np.zeros((n_stations, n_components, dn_e), dtype=np.float32)), axis=-1 )
-            #maxima[d, :, :]       = np.max(waveforms[d, :, :, :], axis=-1)
             #-----------------------------------------
-        metadata_events.update({'template_id'                :   np.array([template_IDs[i]])})
+        if template_refinement and origin_times.size > n_to_keep:
+            # only keep the n_to_keep best detections 
+            threshold_CC       = np.sort(correlation_coefficients)[-n_to_keep]
+            detections_to_keep = np.where(correlation_coefficients >= threshold_CC)[0]
+        else:
+            detections_to_keep = np.arange(origin_times.size)
+        metadata_events.update({'template_id'                :   np.array([template_ids[i]])})
         metadata_events.update({'stations'                   :   np.asarray(data['metadata']['stations']).astype('S')})
         metadata_events.update({'components'                 :   np.asarray(data['metadata']['components']).astype('S')})
-        metadata_events.update({'origin_times'               :   origin_times})
-        metadata_events.update({'correlation_coefficients'   :   correlation_coefficients})
-        waveforms_events.update({'waveforms'                 :   waveforms})
+        metadata_events.update({'origin_times'               :   origin_times[detections_to_keep]})
+        metadata_events.update({'correlation_coefficients'   :   correlation_coefficients[detections_to_keep]})
+        waveforms_events.update({'waveforms'                 :   waveforms[detections_to_keep]})
 
         list_metadata.append(metadata_events)
         list_waveforms.append(waveforms_events)
