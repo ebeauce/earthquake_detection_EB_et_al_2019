@@ -395,8 +395,11 @@ def reloc(tid, I, relocation_traces, svd, test_points, plot=False):
     metadata.update({'SNR'                      :     SNR})
     T = autodet.db_h5py.initialize_template(metadata)
     waveforms = np.zeros((I.size, nc, metadata['duration']), dtype=np.float32)
+    # ----------------------------------------------------
+    # define when the time windows start before the P/S wave
     time_before_S = np.int32(metadata['duration']/2)
     time_before_P = np.int32(1. * autodet.cfg.sampling_rate)
+    # ----------------------------------------------------
     size_stack = svd[0].data.size
     for s in range(I.size):
         for c in range(nc):
@@ -422,9 +425,16 @@ def reloc(tid, I, relocation_traces, svd, test_points, plot=False):
                 waveforms[s,c,:] = data[id1:id2]
             T.select(station=svd.stations[I[s]])[c].data = waveforms[s,c,:]
     T.waveforms = waveforms
-    #=========================================================
-    #=========================================================
-    T.metadata['p_moveouts'] += (time_before_S - time_before_P)/autodet.cfg.sampling_rate # !!!!!!!!!! because the windows are not centered around the P- and S-wave in the same way !!!!!!!!!!!!!
+    # =========================================================
+    # =========================================================
+    # set the moveouts to pointing the beginning of the windows
+    T.metadata['p_moveouts'] -= time_before_P
+    T.metadata['s_moveouts'] -= time_before_S
+    # make all our moveouts positive:
+    T.metadata['p_moveouts'] += time_before_S
+    T.metadata['s_moveouts'] += time_before_S
+    # this last operation changes the reference time:
+    T.metadata['reference_absolute_time'] -= time_before_S
     #=========================================================
     #=========================================================
     T.metadata['stations'] = T.metadata['stations'].astype('S')

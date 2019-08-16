@@ -71,7 +71,6 @@ def calc_network_response(data, moveouts, phase,
     data_availability = np.zeros(n_stations, dtype=np.int32)
 
     if envelopes:
-        #traces = compute_envelopes(traces, data['metadata'], MADs)
         window_length = cmn.to_samples(cfg.template_len, data['metadata']['sampling_rate'])
         start = give_time()
         detection_traces = envelope_parallel(traces) # take the upper envelope of the traces
@@ -108,7 +107,7 @@ def calc_network_response(data, moveouts, phase,
     network_response.data_availability = data_availability
     print('{:d} / {:d} available stations'.format(data_availability.sum(), data_availability.size))
     if data_availability.sum() < data_availability.size//2:
-        print('Less half the stations are available, pass!')
+        print('Less than half the stations are available, pass!')
         network_response.success = False
         return network_response
     else:
