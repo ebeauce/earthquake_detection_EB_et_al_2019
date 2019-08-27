@@ -66,6 +66,9 @@ for date in dates:
     #------------------------------------------------------------
     t1 = give_time()
     NR = autodet.template_search.calc_network_response(data, MV, method, device=device, n_closest_stations=n_closest_stations, envelopes=envelopes, test_points=test_points, saturation=saturation)
+    if not NR.success:
+        print('Computation was interrupted because of low data availability.')
+        continue
     t2 = give_time()
     print('{:.2f}sec to compute the beamformed network response.'.format(t2-t1))
     #------------------------------------------------------------
