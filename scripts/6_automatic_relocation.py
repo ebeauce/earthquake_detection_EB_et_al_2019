@@ -463,7 +463,10 @@ for tid in tids:
     print("===================================")
     print("===== Relocating template {:d} ... =====".format(tid))
     
-    svd = persolib.SVDWF_multiplets(tid, db_path=autodet.cfg.dbpath, db_path_T=db_path_T, db_path_M=db_path_M, best=True, normRMS=True)
+    # if you use one file per template per day
+    #svd = persolib.SVDWF_multiplets(tid, db_path=autodet.cfg.dbpath, db_path_T=db_path_T, db_path_M=db_path_M, best=True, normRMS=True)
+    # if you use one file per day for all templates
+    svd = persolib.SVDWF_multiplets_bulk(tid, db_path=autodet.cfg.dbpath, db_path_T=db_path_T, db_path_M=db_path_M, best=True, normRMS=True)
     if svd is None:
         print("Problem with template {:d}, add to the check list !".format(tid))
         tp_to_check.append(tid)

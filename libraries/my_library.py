@@ -12,6 +12,8 @@ from scipy.ndimage.filters import gaussian_filter1d
 from scipy.interpolate import interp1d
 import scipy.linalg as scilin
 import scipy.signal as scisig
+import glob
+from time import time as give_time
 
 # debugger
 from IPython.core.debugger import Tracer
@@ -289,6 +291,112 @@ def SVDWF_multiplets_test(template_id, db_path=autodet.cfg.dbpath, db_path_M='ma
     if attach_raw_data:
         S.raw_data = WAVEFORMS
     S.Nmulti = best_detection_indexes.size
+    return S
+
+def SVDWF_multiplets_bulk(template_id, db_path=autodet.cfg.dbpath, db_path_M='matched_filter_1/', db_path_T='template_db_1/', \
+                                       WAVEFORMS=None, best=False, normRMS=True, \
+                                       n_singular_values=5, max_freq=autodet.cfg.max_freq, attach_raw_data=False):
+    from obspy import Stream, Trace
+    from scipy.linalg import svd
+    from scipy.signal import wiener
+
+    #-----------------------------------------------------------------------------------------------
+    T = autodet.db_h5py.read_template('template{:d}'.format(template_id), db_path=db_path+db_path_T)
+    #-----------------------------------------------------------------------------------------------
+    files_all = glob.glob(db_path + db_path_M + '*multiplets_*meta.h5')
+    files     = []
+    #------------------------------
+    S  = Stream()
+    CC = []
+    tid_str = str(template_id)
+    t1 = give_time()
+    for file in files_all:
+        with h5.File(file, mode='r') as f:
+            if tid_str in f.keys():
+                files.append(file[:-len('meta.h5')])
+                CC.extend(f[tid_str]['correlation_coefficients'][()].tolist())
+    CC = np.float32(CC)
+    t2 = give_time()
+    print('{:.2f} s to retrieve the correlation coefficients.'.format(t2-t1))
+    if len(files) == 0:
+        print("None multiplet for template {:d} !! Return None".format(template_id))
+        return None
+    with h5.File(files[0] + 'meta.h5', mode='r') as f:
+        S.stations   = f[tid_str]['stations'][()].astype('U').tolist()
+        S.components = f[tid_str]['components'][()].astype('U').tolist()
+    ns = len(S.stations)
+    nc = len(S.components)
+    S.latitude  = T.metadata['latitude']
+    S.longitude = T.metadata['longitude']
+    S.depth     = T.metadata['depth']
+    #------------------------------
+    #----------------------------------------------
+    if WAVEFORMS is None:
+        CC = np.sort(CC)
+        if len(CC) > 300:
+            CC_thres = CC[-101] 
+        elif len(CC) > 70:
+            CC_thres = CC[int(7./10.*len(CC))] # the best 30%
+        elif len(CC) > 30:
+            CC_thres = np.median(CC) # the best 50%
+        elif len(CC) > 10:
+            CC_thres = np.percentile(CC, 33.) # the best 66% detections 
+        else:
+            CC_thres = 0.
+        Nstack = np.zeros((ns, nc), dtype=np.float32)
+        WAVEFORMS  = []
+        Nmulti = 0
+        t1 = give_time()
+        for file in files:
+            if best:
+                with h5.File(file + 'meta.h5', mode='r') as fm:
+                    selection = np.where(fm[tid_str]['correlation_coefficients'][:] > CC_thres)[0]
+                    if selection.size == 0:
+                        continue
+                with h5.File(file + 'wav.h5', mode='r') as fw:
+                    WAVEFORMS.append(fw[tid_str]['waveforms'][selection, :, :, :])
+            else:
+                with h5.File(file + 'wav.h5', mode='r') as fw:
+                    WAVEFORMS.append(fw[tid_str]['waveforms'][()])
+            Nmulti += WAVEFORMS[-1].shape[0]
+            for m in range(WAVEFORMS[-1].shape[0]):
+                for s in range(ns):
+                    for c in range(nc):
+                        if normRMS:
+                            norm = np.sqrt(np.var(WAVEFORMS[-1][m,s,c,:]))
+                        else:
+                            norm =1.
+                        if norm != 0.:
+                            WAVEFORMS[-1][m,s,c,:] /= norm
+        t2 = give_time()
+        print('{:.2f} s to retrieve the waveforms.'.format(t2-t1))
+    elif normRMS:
+        for m in range(WAVEFORMS.shape[0]):
+            for s in range(ns):
+                for c in range(nc):
+                    norm = np.sqrt(np.var(WAVEFORMS[m,s,c,:]))
+                    if norm != 0.:
+                        WAVEFORMS[m,s,c,:] /= norm
+    else:
+        pass
+    WAVEFORMS = np.vstack(WAVEFORMS)
+    WAVEFORMS = WAVEFORMS.reshape(-1, ns, nc, WAVEFORMS.shape[-1])
+    print(WAVEFORMS.shape)
+    filtered_data = np.zeros_like(WAVEFORMS)
+    for s in range(ns):
+        for c in range(nc):
+            filtered_data[:,s,c,:] = SVDWF(WAVEFORMS[:,s,c,:], n_singular_values, max_freq=max_freq)
+            #filtered_data[:,s,c,:] = spectral_filtering(WAVEFORMS[:,s,c,:], SNR_thres=5., max_freq=max_freq)
+            mean = np.mean(filtered_data[:,s,c,:], axis=0)
+            mean /= np.abs(mean).max()
+            S += Trace(data=mean)
+            S[-1].stats.station = S.stations[s]
+            S[-1].stats.channel = S.components[c]
+            S[-1].stats.sampling_rate = autodet.cfg.sampling_rate
+    S.data = filtered_data
+    if attach_raw_data:
+        S.raw_data = WAVEFORMS
+    S.Nmulti = Nmulti
     return S
 
 def SVDWF_multiplets(template_ID, db_path=autodet.cfg.dbpath, db_path_M='matched_filter_1/', db_path_T='template_db_1/', WAVEFORMS=None, best=False, normRMS=True, Nsing_values=5, max_freq=autodet.cfg.max_freq, attach_raw_data=False):
