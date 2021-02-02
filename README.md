@@ -1,9 +1,9 @@
 # earthquake_detection_EB_et_al_2019
-Codes used in the earthquake detection and location method presented in Beauce et al. 2019. A real data example is also provided.<br/>
+Codes used in the earthquake detection and location method presented in Beauce et al. 2019, DOI: [10.1029/2019JB018110](https://doi.org/10.1029/2019JB018110). A real data example is also provided.<br/>
 
 # Prerequirements:
 
-To make our lives easier, we should work with the same Puython environment as the one I am using to develop these codes. I recommand to use conda (cf. [https://www.anaconda.com/](https://www.anaconda.com/)) to manage different environments. The file "package_list_Beauce_2019.txt" contains all the information required for you to clone my environment by running the following command line:<br/>
+To make our lives easier, we should work with the same Python environment as the one I am using to develop these codes. I recommand to use conda (cf. [https://www.anaconda.com/](https://www.anaconda.com/)) to manage different environments. The file "package_list_Beauce_2019.txt" contains all the information required for you to clone my environment by running the following command line:<br/>
 
 $ conda create --name Beauce2019 --file package_list_Beauce_2019.txt
 
@@ -11,7 +11,7 @@ Once your new Python environment has been created, activate it by running:<br/>
 
 $ source activate Beauce2019
 
-Template matching is done using the software Fast Matched Filter (FMF, Beaucé et al 2017, doi: [10.1785/0220170181](https://doi.org/10.1785/0220170181)), which is available at [https://github.com/beridel/fast_matched_filter](https://github.com/beridel/fast_matched_filter). cf. the [documentation](https://ebeauce.github.io/FMF_documentation/) to properly install FMF. If you go for the pip installation (which I recommend), make sure your Beauce2019 environment is activated when installing FMF.<br/>
+Template matching is done using the software Fast Matched Filter (FMF, BeaucÃ© et al 2017, doi: [10.1785/0220170181](https://doi.org/10.1785/0220170181)), which is available at [https://github.com/beridel/fast_matched_filter](https://github.com/beridel/fast_matched_filter). cf. the [documentation](https://ebeauce.github.io/FMF_documentation/) to properly install FMF. If you go for the pip installation (which I recommend), make sure your Beauce2019 environment is activated when installing FMF.<br/>
 
 To compile both FMF and the codes provided here, you will need a C compiler and the cuda compiler nvcc if you wish to use the GPU codes. For example, gcc 4.8.5 (C compiler) with the tools from cuda 7.5 are known to work well.
 
